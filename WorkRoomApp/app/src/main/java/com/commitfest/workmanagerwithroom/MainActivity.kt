@@ -11,9 +11,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,6 +25,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.commitfest.workmanagerwithroom.ui.theme.MyApplicationTheme
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,9 +34,18 @@ class MainActivity : ComponentActivity() {
         val viewModel by viewModels<PruebaViewModel>()
 
         setContent {
-            val dato by remember {
-                mutableStateOf("hola")
+            val workerResult = viewModel.workerId?.let {
+                workManager.getWorkInfoByIdLiveData(it).observeAsState().value
             }
+
+            var datoResultado by remember {
+                mutableStateOf("Try WorkManager")
+            }
+
+            LaunchedEffect(key1 = workerResult) {
+                datoResultado = workerResult?.outputData?.getString(Prueba.RESULT) ?: "Try WorkManager"
+            }
+
             MyApplicationTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -43,7 +56,7 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Greeting("Android")
-                        BotonWorkManager(workManager)
+                        BotonWorkManager(workManager, viewModel, datoResultado)
                     }
                 }
             }
@@ -67,19 +80,21 @@ fun GreetingPreview() {
 }
 
 @Composable
-fun BotonWorkManager(workManager: WorkManager){
+fun BotonWorkManager(workManager: WorkManager, viewModel: PruebaViewModel, buttonText: String){
     val request = OneTimeWorkRequestBuilder<Prueba>()
         .setConstraints(
             Constraints(requiresCharging = true)
         )
         .setInputData(workDataOf(Prueba.MAX_NUM to 10000L))
+        .setInitialDelay(10, TimeUnit.SECONDS) // Broma de estoy esperando a ver si funciona el de dentro de 100 días.
         .build()
+    viewModel.updateWorkerId(request.id)
     Button(
         //modifier = Modifier.fillMaxWidth(),
         onClick = {
             workManager.enqueue(request)
         }
     ) {
-        Text(text = "Try WorkManager")
+        Text(text = buttonText)
     }
 }

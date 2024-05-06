@@ -9,5 +9,8 @@ import java.util.UUID
 class PruebaViewModel: ViewModel() {
 
     var workerId: UUID? by mutableStateOf(null)
-        private set
+
+    fun updateWorkerId(id: UUID) {
+        workerId = id
+    }
 }

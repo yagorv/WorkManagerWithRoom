@@ -84,4 +84,7 @@ dependencies {
     // optional - Test helpers
     androidTestImplementation("androidx.work:work-testing:$work_version")
 
+    //live Data
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.7")
+
 }
