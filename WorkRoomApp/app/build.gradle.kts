@@ -36,7 +36,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
     buildFeatures {
         compose = true
@@ -87,7 +87,7 @@ dependencies {
     androidTestImplementation("androidx.work:work-testing:$work_version")
 
     //Room
-    val room_version = "2.6.1"
+    val room_version = "2.5.1"
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
