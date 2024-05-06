@@ -21,8 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.work.Constraints
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import androidx.work.workDataOf
 import com.commitfest.workmanagerwithroom.ui.theme.MyApplicationTheme
 import java.util.concurrent.TimeUnit
@@ -34,6 +38,15 @@ class MainActivity : ComponentActivity() {
         val viewModel by viewModels<PruebaViewModel>()
 
         setContent {
+            val request = OneTimeWorkRequestBuilder<Prueba>()
+                .setConstraints(
+                    Constraints(requiresCharging = true)
+                )
+                .setInputData(workDataOf(Prueba.MAX_NUM to 10000L))
+                .setInitialDelay(10, TimeUnit.SECONDS) // Broma de estoy esperando a ver si funciona el de dentro de 100 días.
+                .build()
+            viewModel.updateWorkerId(request.id)
+
             val workerResult = viewModel.workerId?.let {
                 workManager.getWorkInfoByIdLiveData(it).observeAsState().value
             }
@@ -56,7 +69,10 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Greeting("Android")
-                        BotonWorkManager(workManager, viewModel, datoResultado)
+                        //ButtonConstrains(workManager)
+                        //ButtonIntervalos(workManager)
+                        //ButtonTrabajosAcelerados(workManager)
+                        BotonWorkManager(request, workManager, viewModel, datoResultado)
                     }
                 }
             }
@@ -80,15 +96,8 @@ fun GreetingPreview() {
 }
 
 @Composable
-fun BotonWorkManager(workManager: WorkManager, viewModel: PruebaViewModel, buttonText: String){
-    val request = OneTimeWorkRequestBuilder<Prueba>()
-        .setConstraints(
-            Constraints(requiresCharging = true)
-        )
-        .setInputData(workDataOf(Prueba.MAX_NUM to 10000L))
-        .setInitialDelay(10, TimeUnit.SECONDS) // Broma de estoy esperando a ver si funciona el de dentro de 100 días.
-        .build()
-    viewModel.updateWorkerId(request.id)
+fun BotonWorkManager(request: WorkRequest, workManager: WorkManager, viewModel: PruebaViewModel, buttonText: String){
+
     Button(
         //modifier = Modifier.fillMaxWidth(),
         onClick = {
@@ -98,3 +107,62 @@ fun BotonWorkManager(workManager: WorkManager, viewModel: PruebaViewModel, butto
         Text(text = buttonText)
     }
 }
+
+@Composable
+fun ButtonConstrains(workManager: WorkManager){
+    val request = OneTimeWorkRequestBuilder<Prueba>()
+        .setConstraints(
+            Constraints(
+                requiresCharging = true,
+                requiresStorageNotLow = true,
+                requiresBatteryNotLow = true,
+                requiresDeviceIdle = true,
+                requiredNetworkType = NetworkType.METERED
+            )
+        ).build()
+
+    Button(
+        onClick = {
+            workManager.enqueue(request)
+        }
+    ) {
+        Text(text = "Try Constrains")
+    }
+}
+
+@Composable
+fun ButtonIntervalos(workManager: WorkManager){
+    val myUploadWork = PeriodicWorkRequestBuilder<Prueba>(
+        1, TimeUnit.HOURS, // repeatInterval (the period cycle)
+        15, TimeUnit.MINUTES) // flexInterval
+        .build()
+
+    Button(
+        onClick = {
+            workManager.enqueue(myUploadWork)
+        }
+    ) {
+        Text(text = "Try Intervalos")
+    }
+}
+
+@Composable
+fun ButtonTrabajosAcelerados(workManager: WorkManager) {
+    val firstRequest = OneTimeWorkRequestBuilder<Prueba>()
+        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+        .build()
+
+    val secondRequest = OneTimeWorkRequestBuilder<Prueba>()
+        .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
+        .build()
+
+    Button(
+        onClick = {
+            workManager.enqueue(firstRequest)
+            workManager.enqueue(secondRequest)
+        }
+    ) {
+        Text(text = "Try Trabajos acelerados")
+    }
+}
+
