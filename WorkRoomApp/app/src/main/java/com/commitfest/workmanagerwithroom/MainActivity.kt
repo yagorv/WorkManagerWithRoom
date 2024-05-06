@@ -1,22 +1,30 @@
 package com.commitfest.workmanagerwithroom
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.room.Room
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
+import com.commitfest.workmanagerwithroom.data.room.PhotoDatabase
 import com.commitfest.workmanagerwithroom.ui.theme.MyApplicationTheme
 import com.commitfest.workmanagerwithroom.workers.GetDataWorker
 import com.commitfest.workmanagerwithroom.workers.UpdateDataWorker
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -47,14 +55,19 @@ class MainActivity : ComponentActivity() {
             .enqueue(request)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createOneTimeGetDataWorkerRequest(
         delay: Long,
         timeUnit: TimeUnit = TimeUnit.MINUTES
     ): WorkRequest =
         OneTimeWorkRequestBuilder<GetDataWorker>()
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                Duration.ofSeconds(10),
+            )
             .setConstraints(
                 Constraints.Builder()
-                    .setRequiresBatteryNotLow(true)
+                    .setRequiresCharging(true)
                     .build()
             )
             .setInitialDelay(delay, timeUnit).build()

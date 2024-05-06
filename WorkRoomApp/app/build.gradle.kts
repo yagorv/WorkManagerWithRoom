@@ -1,8 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
-
 }
 
 android {
@@ -89,7 +87,6 @@ dependencies {
     //Room
     val room_version = "2.6.1"
     implementation("androidx.room:room-ktx:$room_version")
-    ksp("androidx.room:room-compiler:$room_version")
 
     //Retrofit
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
@@ -97,6 +94,5 @@ dependencies {
 
     //Moshi library for JsonClass
     implementation ("com.squareup.moshi:moshi:1.15.0")
-    ksp ("com.squareup.moshi:moshi-kotlin-codegen:1.14.0")
 
 }
