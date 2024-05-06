@@ -7,7 +7,7 @@ import retrofit2.http.Path
 
 interface ApiService {
     @GET("posts/{id}")
-    fun getPostById(@Path("id") postId: Int): Call<PhotoEntity>
+    fun getPostById(@Path("id") postId: Int): List<PhotoEntity>
     @GET("photos")
-    fun getPhotos(): Call<PhotoEntity>
+    fun getPhotos(): Call<List<PhotoEntity>>
 }
