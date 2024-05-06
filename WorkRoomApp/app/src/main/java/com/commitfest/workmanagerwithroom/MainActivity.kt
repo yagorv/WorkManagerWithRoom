@@ -9,22 +9,37 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
+import com.commitfest.workmanagerwithroom.data.room.PhotoDatabase
+import com.commitfest.workmanagerwithroom.presentation.PhotosViewModel
 import com.commitfest.workmanagerwithroom.ui.theme.MyApplicationTheme
 import com.commitfest.workmanagerwithroom.workers.GetDataWorker
 import com.commitfest.workmanagerwithroom.workers.UpdateDataWorker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
+    private lateinit var photosViewModel: PhotosViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Content()
+        }
+        photosViewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
+        photosViewModel.getPhotos()
+
+        lifecycleScope.launch {
+            photosViewModel.photosFlow.collect { response ->
+            }
         }
     }
 
