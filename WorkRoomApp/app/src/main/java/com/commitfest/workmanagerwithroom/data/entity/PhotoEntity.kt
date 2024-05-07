@@ -6,10 +6,10 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 open class PhotoEntity(
     @property:Json(name = "albumId") open val albumId: String?,
-    @property:Json(name = "id") open val id: Double?,
-    @property:Json(name = "title") open val title: Double?,
-    @property:Json(name = "url") open val url: Double?,
-    @property:Json(name = "thumbnailUrl") open val thumbnailUrl: Double?,
+    @property:Json(name = "id") open val id: String?,
+    @property:Json(name = "title") open val title: String?,
+    @property:Json(name = "url") open val url: String?,
+    @property:Json(name = "thumbnailUrl") open val thumbnailUrl: String?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (other !is PhotoEntity) return false

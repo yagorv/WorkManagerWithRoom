@@ -17,7 +17,7 @@ interface PhotosDAO {
     //generacion automática de código sql
     //tiene flows, le pones las anotaciones, te crea el flow por detrás para que siempre esté escuchando etc
     @Delete
-    suspend fun deleteString(string: Photos)
+    suspend fun deletePhotos()
 
     @Query("SELECT * FROM photos ORDER BY id ASC")
     fun getStringsOrderedByValue() : Flow<List<PhotoEntity>>
