@@ -32,7 +32,6 @@ class PhotosViewModel(
                     dao.deletePhotos()
                 }
             }
-
             else -> {}
         }
     }
