@@ -2,7 +2,7 @@ package com.commitfest.workmanagerwithroom.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.commitfest.workmanagerwithroom.data.room.PhotoEvent
+import com.commitfest.workmanagerwithroom.data.room.Events
 import com.commitfest.workmanagerwithroom.data.room.PhotosDAO
 import com.commitfest.workmanagerwithroom.domain.model.PhotoModel
 import com.commitfest.workmanagerwithroom.domain.usecases.GetPhotosUseCase
@@ -25,11 +25,22 @@ class PhotosViewModel(
         }
     }
 
-    fun onEvent(event: PhotoEvent) {
+    fun onEvent(event: Events) {
         when(event) {
-            is PhotoEvent.DeletePhotos -> {
+            is Events.DeletePhotos -> {
                 viewModelScope.launch {
                     dao.deletePhotos()
+                }
+            }
+            is Events.SavePhotosInRoom -> {
+                viewModelScope.launch {
+                    photosFlow.collect { response ->
+                        if (response.isSuccessful) {
+                            response.body()?.let { photos ->
+                                dao.savePhotos(photos)
+                            }
+                        }
+                    }
                 }
             }
             else -> {}
