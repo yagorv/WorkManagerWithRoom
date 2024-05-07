@@ -29,7 +29,7 @@ class PhotosViewModel(
         when(event) {
             is Events.DeletePhotos -> {
                 viewModelScope.launch {
-                    dao.deletePhotos()
+                  //  dao.deletePhotos()
                 }
             }
             is Events.SavePhotosInRoom -> {
@@ -37,7 +37,7 @@ class PhotosViewModel(
                     photosFlow.collect { response ->
                         if (response.isSuccessful) {
                             response.body()?.let { photos ->
-                                dao.savePhotos(photos)
+                               // dao.savePhotos(photos)
                             }
                         }
                     }

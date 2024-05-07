@@ -4,10 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +19,9 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.commitfest.workmanagerwithroom.data.room.PhotoDatabase
+import com.commitfest.workmanagerwithroom.data.room.PhotosDAO
+import com.commitfest.workmanagerwithroom.domain.model.PhotoModel
+import com.commitfest.workmanagerwithroom.domain.usecases.GetPhotosUseCase
 import com.commitfest.workmanagerwithroom.presentation.PhotosViewModel
 import com.commitfest.workmanagerwithroom.ui.theme.MyApplicationTheme
 import com.commitfest.workmanagerwithroom.workers.GetDataWorker
@@ -28,18 +33,35 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     private lateinit var photosViewModel: PhotosViewModel
+    private lateinit var getPhotosUseCase: GetPhotosUseCase
+    private lateinit var photosDAO: PhotosDAO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            Content()
-        }
+       // getPhotosUseCase = GetPhotosUseCase()
+
+      //  val photoDatabase = PhotoDatabase
+       /// photosDAO = photoDatabase.photoDao()
+
         photosViewModel = ViewModelProvider(this)[PhotosViewModel::class.java]
         photosViewModel.getPhotos()
 
+        val photos = mutableStateOf<List<PhotoModel>>(listOf())
+
         lifecycleScope.launch {
             photosViewModel.photosFlow.collect { response ->
+                withContext(Dispatchers.IO) {
+                    if (response.isSuccessful) {
+                        response.body()?.let { photoList ->
+                            photos.value = photoList
+                        }
+                    }
+                }
             }
+        }
+
+        setContent {
+            Content(photos.value)
         }
     }
 
@@ -89,7 +111,7 @@ class MainActivity : ComponentActivity() {
             .build()
 
     @Composable
-    fun Content() {
+    fun Content(photos: List<PhotoModel>) {
         MyApplicationTheme {
             Surface(
                 modifier = Modifier.fillMaxSize(),
@@ -98,6 +120,17 @@ class MainActivity : ComponentActivity() {
                 Text(
                     text = "Hello!"
                 )
+                PhotoList(photos = photos)
+
+            }
+        }
+    }
+
+    @Composable
+    fun PhotoList(photos: List<PhotoModel>) {
+        LazyColumn {
+            items(photos.size) { index ->
+                Text(text = photos[index].title)
             }
         }
     }
